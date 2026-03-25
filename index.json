@@ -1,21 +1,21 @@
 {
   "site": {
     "title": "VideoHub",
-    "description": "精选视频内容"
+    "description": "Share Videos"
   },
   "videos": [
     {
       "id": "v001",
-      "title": "如何用 AI 提升工作效率",
-      "description": "探索 AI 工具如何改变我们的日常工作流程，从自动化重复任务到辅助创意写作，全面提升生产力。",
-      "category": "科技",
-      "author": "张伟",
-      "date": "2026-03-20",
-      "duration": "12:34",
+      "title": "N HAIR SETUP Tool",
+      "description": "I created the 'N Hair Setup' Tool three years ago after debugging a related issue. The tool is a technical utility for Maya that automates and standardizes dynamic curve simulations in production. It replaces tedious, error-prone manual node construction with a deterministic, pipeline-compliant setup, enforcing strict naming conventions and a predictable node architecture. By ensuring stable connections and eliminating structural inconsistencies, it improves efficiency, simulation stability, and scalability—enabling reliable, repeatable setups across shots, assets, and large-scale productions while enhancing overall CFX workflow quality.",
+      "category": "DEMO",
+      "author": "RIST JW CHENG",
+      "date": "2022-03-20",
+      "duration": "03:20",
       "views": "48.2K",
-      "thumbnail": "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=800&q=80",
-      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      "tags": ["AI", "生产力", "工作效率"]
+      "thumbnail": "https://pub-8231e5ac90c04ce199d0a2879d3ea6ec.r2.dev/Video%20Thumbnails/N%20HAIR%20SETUP_Tool_Thumbnail_RISTJIANWENCHENG.png",
+      "url": "https://pub-8231e5ac90c04ce199d0a2879d3ea6ec.r2.dev/Videos/N%20HAIR%20SETUP_Tool_RISTJIANWENCHENG.mp4",
+      "tags": ["MAYA", "3D", "CFX"]
     },
     {
       "id": "v002",
