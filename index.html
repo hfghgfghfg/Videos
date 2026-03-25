@@ -20,6 +20,7 @@
       --ff-serif: 'Playfair Display', Georgia, serif;
       --ff-sans:  'Outfit', sans-serif;
       --ease:     cubic-bezier(.4,0,.2,1);
+      --thumb-radius: 10px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -55,13 +56,6 @@
       letter-spacing: 0.22em; text-transform: uppercase;
       color: var(--ink); text-decoration: none;
       display: flex; align-items: center; gap: 4px;
-    }
-
-    .logo-dot {
-      display: inline-block;
-      width: 7px; height: 7px;
-      background: var(--li-blue); border-radius: 50%;
-      margin-bottom: 2px;
     }
 
     nav { display: flex; align-items: center; gap: 32px; }
@@ -103,15 +97,6 @@
       letter-spacing: 0.2em; text-transform: uppercase;
       color: var(--li-blue); margin-bottom: 20px;
     }
-
-    .hero-title {
-      font-family: var(--ff-serif);
-      font-size: clamp(2.6rem, 5.5vw, 4.8rem);
-      font-weight: 400; line-height: 1.06;
-      letter-spacing: -0.025em;
-    }
-
-    .hero-title em { font-style: italic; color: var(--ink-60); }
 
     .hero-right { text-align: right; padding-bottom: 4px; }
 
@@ -184,10 +169,13 @@
 
     .card:nth-child(3n+2) { margin-top: 48px; }
 
-    /* Thumbnail */
+    /* Thumbnail — 16:9 ratio with rounded corners */
     .thumb-wrap {
-      position: relative; aspect-ratio: 4/3;
-      overflow: hidden; background: var(--paper2);
+      position: relative;
+      aspect-ratio: 16 / 9;          /* ← standard video ratio */
+      overflow: hidden;
+      background: var(--paper2);
+      border-radius: var(--thumb-radius); /* ← rounded corners */
     }
 
     .thumb-wrap img {
@@ -205,18 +193,21 @@
       background: var(--paper); padding: 5px 13px;
       font-size: 0.63rem; font-weight: 500;
       letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink);
+      border-radius: 0 var(--thumb-radius) 0 var(--thumb-radius); /* bottom-left inherits card corner */
     }
 
     .dur {
       position: absolute; top: 12px; right: 12px;
       background: rgba(26,24,20,0.72); color: #fff;
       font-size: 0.72rem; padding: 3px 9px; letter-spacing: 0.04em;
+      border-radius: 4px;
     }
 
     .play-overlay {
       position: absolute; inset: 0;
       display: flex; align-items: center; justify-content: center;
       opacity: 0; transition: opacity 0.28s; text-decoration: none;
+      border-radius: var(--thumb-radius);
     }
     .card:hover .play-overlay { opacity: 1; }
 
@@ -349,6 +340,7 @@
       aspect-ratio: 16/9;
       background: #000;
       display: block;
+      border-radius: 8px;
     }
 
     #lb-iframe {
@@ -356,6 +348,7 @@
       aspect-ratio: 16/9;
       border: none;
       display: block;
+      border-radius: 8px;
     }
 
     .lb-caption {
@@ -493,7 +486,6 @@
     let currentCategory = 'All';
     let currentSearch = '';
 
-    // ── Load JSON ──
     async function loadVideos() {
       try {
         const res = await fetch('videos.json');
@@ -509,7 +501,6 @@
       }
     }
 
-    // ── Category filters (use whatever strings are in JSON) ──
     function buildFilters(videos) {
       const cats = [...new Set(videos.map(v => v.category))];
       const wrap = document.getElementById('filtersContainer');
@@ -548,7 +539,6 @@
       renderVideos(f);
     }
 
-    // ── Detect mp4 vs embed URL ──
     function isMp4(url) { return /\.mp4(\?|$)/i.test(url); }
 
     function getYouTubeId(url) {
@@ -556,7 +546,6 @@
       return m ? m[1] : null;
     }
 
-    // ── Render cards ──
     function renderVideos(videos) {
       const grid = document.getElementById('videoGrid');
       if (!videos.length) {
@@ -566,8 +555,7 @@
       grid.innerHTML = videos.map((v, i) => {
         const init = v.author.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
         const thumbSrc = v.thumbnail || '';
-        const hasThumb = thumbSrc.length > 0;
-        const thumbHtml = hasThumb
+        const thumbHtml = thumbSrc
           ? `<img src="${thumbSrc}" alt="${esc(v.title)}" loading="lazy">`
           : `<div style="width:100%;height:100%;background:var(--paper2);display:flex;align-items:center;justify-content:center;color:var(--ink-60);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;">No Preview</div>`;
 
@@ -609,7 +597,6 @@
       }).join('');
     }
 
-    // ── Lightbox player ──
     function openPlayer(url, title) {
       const lb      = document.getElementById('lightbox');
       const video   = document.getElementById('lb-video');
@@ -617,24 +604,20 @@
       const caption = document.getElementById('lb-title');
 
       caption.textContent = title;
-
       const ytId = getYouTubeId(url);
 
       if (ytId) {
-        // YouTube embed
         video.style.display  = 'none';
         video.pause(); video.src = '';
         iframe.style.display = 'block';
         iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
       } else if (isMp4(url)) {
-        // Native mp4
         iframe.style.display = 'none';
         iframe.src = '';
         video.style.display  = 'block';
         video.src = url;
         video.play();
       } else {
-        // Fallback: open in new tab
         window.open(url, '_blank', 'noopener,noreferrer');
         return;
       }
@@ -644,8 +627,8 @@
     }
 
     function closeLightboxBtn() {
-      const lb    = document.getElementById('lightbox');
-      const video = document.getElementById('lb-video');
+      const lb     = document.getElementById('lightbox');
+      const video  = document.getElementById('lb-video');
       const iframe = document.getElementById('lb-iframe');
       video.pause(); video.src = '';
       iframe.src = '';
@@ -661,7 +644,6 @@
       if (e.key === 'Escape') closeLightboxBtn();
     });
 
-    // ── LinkedIn Share ──
     function shareToLinkedIn(url, title, desc) {
       const liUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
       if (navigator.share) {
