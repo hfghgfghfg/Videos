@@ -316,6 +316,60 @@
     .share-btn:active { opacity: 0.85; }
     .share-btn > * { position: relative; z-index: 1; }
 
+    /* LIGHTBOX */
+    #lightbox {
+      display: none;
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(10,9,8,0.92);
+      backdrop-filter: blur(12px);
+      align-items: center; justify-content: center;
+    }
+    #lightbox.open { display: flex; }
+
+    .lb-inner {
+      position: relative;
+      width: min(880px, 94vw);
+    }
+
+    .lb-close {
+      position: absolute;
+      top: -40px; right: 0;
+      background: none; border: none;
+      color: rgba(255,255,255,0.6);
+      font-family: var(--ff-sans);
+      font-size: 0.72rem; letter-spacing: 0.14em;
+      text-transform: uppercase; cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      transition: color 0.2s;
+    }
+    .lb-close:hover { color: #fff; }
+
+    #lb-video {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #000;
+      display: block;
+    }
+
+    #lb-iframe {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border: none;
+      display: block;
+    }
+
+    .lb-caption {
+      padding: 16px 0 0;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    }
+
+    .lb-title {
+      font-family: var(--ff-serif);
+      font-size: 1.1rem; font-weight: 400;
+      color: rgba(245,242,237,0.9);
+      line-height: 1.35;
+    }
+
     /* Toast */
     #toast {
       position: fixed; bottom: 36px; left: 50%;
@@ -417,6 +471,21 @@
     </div>
   </div>
 
+  <!-- LIGHTBOX -->
+  <div id="lightbox" onclick="closeLightbox(event)">
+    <div class="lb-inner">
+      <button class="lb-close" onclick="closeLightboxBtn()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        Close
+      </button>
+      <video id="lb-video" controls playsinline style="display:none"></video>
+      <iframe id="lb-iframe" allowfullscreen allow="autoplay; encrypted-media" style="display:none"></iframe>
+      <div class="lb-caption">
+        <div class="lb-title" id="lb-title"></div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast">Opening LinkedIn share →</div>
 
   <script>
@@ -424,41 +493,30 @@
     let currentCategory = 'All';
     let currentSearch = '';
 
-    const catMap = {
-      '科技':'Technology','职业发展':'Career','编程':'Engineering',
-      '营销':'Marketing','管理':'Management','设计':'Design'
-    };
-
-    const enData = {
-      v001:{ title:'How AI Supercharges Your Workflow', desc:'Explore how AI tools are reshaping everyday work—from automating repetitive tasks to augmenting creative output and boosting overall productivity.', author:'Zhang Wei', tags:['AI','Productivity','Workflow'] },
-      v002:{ title:'Building a LinkedIn Personal Brand', desc:'A step-by-step guide to crafting a compelling LinkedIn presence that attracts opportunity and expands your professional network.', author:'Li Ming', tags:['LinkedIn','Personal Brand','Career'] },
-      v003:{ title:'Frontend Trends to Know in 2026', desc:'A deep dive into the hottest frontend technologies—React Server Components, Vue 3 Vapor Mode, and the rising role of WebAssembly.', author:'Wang Fang', tags:['Frontend','React','Engineering'] },
-      v004:{ title:'Data-Driven Content Marketing', desc:'Use analytics to sharpen your content strategy, increase reach, and drive meaningful audience engagement across channels.', author:'Chen Chen', tags:['Marketing','Analytics','Content'] },
-      v005:{ title:'Remote Team Collaboration Playbook', desc:'Practical frameworks for maintaining clarity, trust, and momentum across distributed global teams.', author:'Liu Yang', tags:['Remote Work','Collaboration','Leadership'] },
-      v006:{ title:'Design Thinking for Product Teams', desc:'Real-world case studies walk through all five stages of design thinking—helping PMs and designers build genuinely user-centered products.', author:'Zhao Xue', tags:['Design Thinking','UX','Product'] }
-    };
-
+    // ── Load JSON ──
     async function loadVideos() {
       try {
         const res = await fetch('videos.json');
+        if (!res.ok) throw new Error('fetch failed');
         const data = await res.json();
         allVideos = data.videos;
         document.getElementById('heroCount').textContent = String(allVideos.length).padStart(2,'0');
         buildFilters(allVideos);
         renderVideos(allVideos);
-      } catch {
+      } catch (err) {
         document.getElementById('loading').innerHTML =
-          '<p style="font-size:.78rem;letter-spacing:.06em;color:#aaa">Cannot load videos.json — place it in the same folder as index.html.</p>';
+          '<p style="font-size:.78rem;letter-spacing:.06em;color:#aaa">Cannot load videos.json — place it in the same folder as index.html and use a local server.</p>';
       }
     }
 
+    // ── Category filters (use whatever strings are in JSON) ──
     function buildFilters(videos) {
       const cats = [...new Set(videos.map(v => v.category))];
       const wrap = document.getElementById('filtersContainer');
       cats.forEach(cat => {
         const btn = document.createElement('button');
         btn.className = 'filter-btn';
-        btn.textContent = catMap[cat] || cat;
+        btn.textContent = cat;
         btn.dataset.cat = cat;
         btn.onclick = () => setCategory(cat, btn);
         wrap.appendChild(btn);
@@ -481,16 +539,24 @@
       let f = allVideos;
       if (currentCategory !== 'All') f = f.filter(v => v.category === currentCategory);
       if (currentSearch) {
-        f = f.filter(v => {
-          const e = enData[v.id] || {};
-          return (e.title||v.title).toLowerCase().includes(currentSearch) ||
-                 (e.desc||v.description).toLowerCase().includes(currentSearch) ||
-                 (e.tags||v.tags).some(t => t.toLowerCase().includes(currentSearch));
-        });
+        f = f.filter(v =>
+          v.title.toLowerCase().includes(currentSearch) ||
+          v.description.toLowerCase().includes(currentSearch) ||
+          v.tags.some(t => t.toLowerCase().includes(currentSearch))
+        );
       }
       renderVideos(f);
     }
 
+    // ── Detect mp4 vs embed URL ──
+    function isMp4(url) { return /\.mp4(\?|$)/i.test(url); }
+
+    function getYouTubeId(url) {
+      const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([^?&"'>]+)/);
+      return m ? m[1] : null;
+    }
+
+    // ── Render cards ──
     function renderVideos(videos) {
       const grid = document.getElementById('videoGrid');
       if (!videos.length) {
@@ -498,43 +564,42 @@
         return;
       }
       grid.innerHTML = videos.map((v, i) => {
-        const e = enData[v.id] || {};
-        const title  = e.title  || v.title;
-        const desc   = e.desc   || v.description;
-        const author = e.author || v.author;
-        const tags   = e.tags   || v.tags;
-        const catEn  = catMap[v.category] || v.category;
-        const init   = author.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+        const init = v.author.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+        const thumbSrc = v.thumbnail || '';
+        const hasThumb = thumbSrc.length > 0;
+        const thumbHtml = hasThumb
+          ? `<img src="${thumbSrc}" alt="${esc(v.title)}" loading="lazy">`
+          : `<div style="width:100%;height:100%;background:var(--paper2);display:flex;align-items:center;justify-content:center;color:var(--ink-60);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;">No Preview</div>`;
 
         return `
         <article class="card" style="animation-delay:${i*0.07}s">
           <div class="thumb-wrap">
-            <img src="${v.thumbnail}" alt="${title}" loading="lazy">
-            <span class="cat-strip">${catEn}</span>
+            ${thumbHtml}
+            <span class="cat-strip">${v.category}</span>
             <span class="dur">${v.duration}</span>
-            <a class="play-overlay" href="${v.url}" target="_blank" rel="noopener">
+            <div class="play-overlay" onclick="openPlayer('${esc(v.url)}','${esc(v.title)}')" style="cursor:pointer;">
               <span class="play-ring">
                 <svg width="16" height="16" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               </span>
-            </a>
+            </div>
           </div>
           <div class="card-body">
             <div class="card-meta">
               <div class="card-author">
                 <div class="avatar">${init}</div>
-                <span>${author}</span>
+                <span>${v.author}</span>
               </div>
               <span>${v.date}</span>
             </div>
-            <a class="card-title" href="${v.url}" target="_blank" rel="noopener">${title}</a>
-            <p class="card-desc">${desc}</p>
-            <div class="card-tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+            <div class="card-title" onclick="openPlayer('${esc(v.url)}','${esc(v.title)}')" style="cursor:pointer;">${v.title}</div>
+            <p class="card-desc">${v.description}</p>
+            <div class="card-tags">${v.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
             <div class="card-footer">
               <div class="views-info">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 ${v.views} views
               </div>
-              <button class="share-btn" onclick="shareToLinkedIn('${v.url}','${esc(title)}','${esc(desc)}')">
+              <button class="share-btn" onclick="shareToLinkedIn('${esc(v.url)}','${esc(v.title)}','${esc(v.description)}')">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
                 <span>Share to LinkedIn</span>
               </button>
@@ -544,6 +609,59 @@
       }).join('');
     }
 
+    // ── Lightbox player ──
+    function openPlayer(url, title) {
+      const lb      = document.getElementById('lightbox');
+      const video   = document.getElementById('lb-video');
+      const iframe  = document.getElementById('lb-iframe');
+      const caption = document.getElementById('lb-title');
+
+      caption.textContent = title;
+
+      const ytId = getYouTubeId(url);
+
+      if (ytId) {
+        // YouTube embed
+        video.style.display  = 'none';
+        video.pause(); video.src = '';
+        iframe.style.display = 'block';
+        iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+      } else if (isMp4(url)) {
+        // Native mp4
+        iframe.style.display = 'none';
+        iframe.src = '';
+        video.style.display  = 'block';
+        video.src = url;
+        video.play();
+      } else {
+        // Fallback: open in new tab
+        window.open(url, '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      lb.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightboxBtn() {
+      const lb    = document.getElementById('lightbox');
+      const video = document.getElementById('lb-video');
+      const iframe = document.getElementById('lb-iframe');
+      video.pause(); video.src = '';
+      iframe.src = '';
+      lb.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function closeLightbox(e) {
+      if (e.target === document.getElementById('lightbox')) closeLightboxBtn();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeLightboxBtn();
+    });
+
+    // ── LinkedIn Share ──
     function shareToLinkedIn(url, title, desc) {
       const liUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`;
       if (navigator.share) {
@@ -560,7 +678,9 @@
       setTimeout(() => t.classList.remove('show'), 2600);
     }
 
-    function esc(s) { return s.replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+    function esc(s) {
+      return s.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    }
 
     loadVideos();
   </script>
