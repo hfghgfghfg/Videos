@@ -1,0 +1,86 @@
+{
+  "site": {
+    "title": "VideoHub",
+    "description": "精选视频内容"
+  },
+  "videos": [
+    {
+      "id": "v001",
+      "title": "如何用 AI 提升工作效率",
+      "description": "探索 AI 工具如何改变我们的日常工作流程，从自动化重复任务到辅助创意写作，全面提升生产力。",
+      "category": "科技",
+      "author": "张伟",
+      "date": "2026-03-20",
+      "duration": "12:34",
+      "views": "48.2K",
+      "thumbnail": "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=800&q=80",
+      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "tags": ["AI", "生产力", "工作效率"]
+    },
+    {
+      "id": "v002",
+      "title": "LinkedIn 个人品牌打造指南",
+      "description": "从零开始建立你的 LinkedIn 个人品牌，吸引更多职业机会，扩展你的职业人脉网络。",
+      "category": "职业发展",
+      "author": "李明",
+      "date": "2026-03-18",
+      "duration": "08:21",
+      "views": "32.7K",
+      "thumbnail": "https://images.unsplash.com/photo-1611944212129-29977ae1398c?w=800&q=80",
+      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "tags": ["LinkedIn", "个人品牌", "职业发展"]
+    },
+    {
+      "id": "v003",
+      "title": "2026 年前端开发趋势",
+      "description": "深入了解今年最热门的前端技术栈，包括 React、Vue 3 的新特性以及 Web Assembly 的应用。",
+      "category": "编程",
+      "author": "王芳",
+      "date": "2026-03-15",
+      "duration": "20:05",
+      "views": "91.3K",
+      "thumbnail": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80",
+      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "tags": ["前端", "React", "编程"]
+    },
+    {
+      "id": "v004",
+      "title": "数据驱动的内容营销策略",
+      "description": "如何利用数据分析来优化你的内容策略，提高内容的覆盖率和用户参与度，实现营销目标。",
+      "category": "营销",
+      "author": "陈晨",
+      "date": "2026-03-12",
+      "duration": "15:47",
+      "views": "27.1K",
+      "thumbnail": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80",
+      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "tags": ["营销", "数据分析", "内容策略"]
+    },
+    {
+      "id": "v005",
+      "title": "远程团队协作最佳实践",
+      "description": "分享在全球分布式团队中保持高效沟通与协作的实用技巧，让远程工作更顺畅。",
+      "category": "管理",
+      "author": "刘洋",
+      "date": "2026-03-10",
+      "duration": "11:18",
+      "views": "19.5K",
+      "thumbnail": "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&q=80",
+      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "tags": ["远程工作", "团队协作", "管理"]
+    },
+    {
+      "id": "v006",
+      "title": "产品设计思维入门",
+      "description": "通过真实案例讲解设计思维的五个阶段，帮助产品经理和设计师打造以用户为中心的产品。",
+      "category": "设计",
+      "author": "赵雪",
+      "date": "2026-03-08",
+      "duration": "18:33",
+      "views": "44.6K",
+      "thumbnail": "https://images.unsplash.com/photo-1586717791821-3f44a563fa4c?w=800&q=80",
+      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "tags": ["设计思维", "产品设计", "UX"]
+    }
+  ]
+}
